@@ -16,6 +16,12 @@ response = client.chat.completions.create(
             "role": "user",
             "content": "请介绍一下你自己"
         }
-        ]
+        ],
+        stream = True
 )
-print(response.choices[0].message.content)
+print("Response:")
+for chunk in response:
+    content = chunk.choices[0].delta.content
+    if content:
+        print(content, end="", flush=True)
+print("\n Done.")
