@@ -8,10 +8,12 @@ from .config import Settings
 from .llm import make_client
 from .price import lookup_price
 from .rag import rag_search
+from .types import Message
 
 
 class State(TypedDict, total=False):
 	user_input: str
+	history: List[Message]
 	route: Literal["rag", "price_lookup", "direct_answer"]
 	rag_hits: List[Dict[str, Any]]
 	price: Dict[str, Any]
@@ -72,7 +74,7 @@ def _do_price(state: State) -> State:
 	return state
 
 
-def _direct_answer(state: State, settings: Settings) -> State:
+def _direct_answer(state: State, settings: Settings, stream: bool) -> State:
 	client = make_client(settings)
 
 	# Compose a visible citation block so you can verify RAG is being used.
@@ -81,7 +83,6 @@ def _direct_answer(state: State, settings: Settings) -> State:
 	if hits:
 		lines = []
 		for h in hits:
-			# keep each line short
 			text = (h.get("text") or "").strip().replace("\n", " ")
 			if len(text) >160:
 				text = text[:160] + "…"
@@ -92,9 +93,18 @@ def _direct_answer(state: State, settings: Settings) -> State:
 	else:
 		citations = "\n\n【参考资料 / RAG命中】(无)"
 
+	# "DeepSeek-style" visible reasoning without exposing chain-of-thought:
+	# We provide a short, user-facing rationale bullets (not hidden reasoning tokens).
+	rationale = "\n\n【我的判断依据】\n"
+	rationale += "-先确认使用场景/人群（谁用、用来干什么、在哪用）\n"
+	rationale += "- 再把需求翻译成参数（屏幕/续航/外放/信号/耐用/系统易用）\n"
+	rationale += "- 最后给出可执行的购买建议（预算分档、到手设置、避坑）\n"
+
 	sys = (
 		"You are an AI shopping assistant. Answer in Chinese. "
+		"Be concrete and actionable. "
 		"Use the provided RAG snippets when relevant and do not invent citations. "
+		"Do not reveal private chain-of-thought. Provide brief rationale bullets only. "
 		"If you don't know exact prices, say so and suggest how to check."
 	)
 
@@ -105,25 +115,49 @@ def _direct_answer(state: State, settings: Settings) -> State:
 		context_parts.append(f"价格查询结果：{state['price']}")
 	context = "\n\n".join(context_parts)
 
-	user = state["user_input"] if not context else f"{state['user_input']}\n\n{context}"
+	# include short conversation context
+	history = state.get("history") or []
+	# Keep last few turns to avoid prompt bloat
+	trimmed = history[-6:]
+	messages: List[Dict[str, str]] = [{"role": "system", "content": sys}]
+	for m in trimmed:
+		messages.append({"role": m["role"], "content": m["content"]})
 
-	resp = client.chat.completions.create(
-		model=settings.model,
-		messages=[
-			{"role": "system", "content": sys},
-			{"role": "user", "content": user},
-		],
-	)
-	state["answer"] = (resp.choices[0].message.content or "") + citations
+	user = state["user_input"] if not context else f"{state['user_input']}\n\n{context}"
+	messages.append({"role": "user", "content": user})
+
+	if stream:
+		resp = client.chat.completions.create(
+			model=settings.model,
+			messages=messages,
+			stream=True,
+		)
+		chunks: List[str] = []
+		for chunk in resp:
+			delta = chunk.choices[0].delta
+			content = getattr(delta, "content", None)
+			if content:
+				print(content, end="", flush=True)
+				chunks.append(content)
+			
+		answer_text = "".join(chunks)
+	else:
+		resp = client.chat.completions.create(model=settings.model, messages=messages)
+		answer_text = resp.choices[0].message.content or ""
+
+	state["answer"] = answer_text + rationale + citations
+	# print rationale+citations after stream so user sees them
+	if stream:
+		print(rationale + citations, end="", flush=True)
 	return state
 
 
-def build_graph(settings: Settings):
+def build_graph(settings: Settings, stream: bool = False):
 	g = StateGraph(State)
 	g.add_node("route", lambda s: {**s, "route": _route(s)})
 	g.add_node("rag", _do_rag)
 	g.add_node("price_lookup", _do_price)
-	g.add_node("direct_answer", lambda s: _direct_answer(s, settings))
+	g.add_node("direct_answer", lambda s: _direct_answer(s, settings, stream=stream))
 
 	g.set_entry_point("route")
 
