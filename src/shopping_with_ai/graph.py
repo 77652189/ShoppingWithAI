@@ -67,6 +67,15 @@ def _route(state: State) -> str:
 def _do_rag(state: State) -> State:
 	hits = rag_search(state["user_input"])
 	state["rag_hits"] = [hit.__dict__ for hit in hits]
+
+	# Optional debug: show routing + raw hits.
+	if os.getenv("DEBUG_RAG", "0") == "1":
+		print("\n\n[DEBUG] route=rag")
+		if not hits:
+			print("[DEBUG] hits=0")
+		else:
+			for h in state["rag_hits"]:
+				print(f"[DEBUG] doc#{h.get('doc_id')} score={h.get('score'):.3f} :: {h.get('text')}")
 	return state
 
 
@@ -152,9 +161,8 @@ def _direct_answer(state: State, settings: Settings, stream: bool) -> State:
 		answer_text = resp.choices[0].message.content or ""
 
 	state["answer"] = answer_text + rationale + citations
-	# print rationale+citations after stream so user sees them
-	if stream:
-		print(rationale + citations, end="", flush=True)
+	# Always print rationale+citations so user can verify RAG usage.
+	print(rationale + citations, end="", flush=True)
 	return state
 
 
