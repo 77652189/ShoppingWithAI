@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import time
+import threading
 from typing import Any, Dict, List, Literal, TypedDict
 
 from langgraph.graph import END, StateGraph
@@ -144,17 +145,47 @@ def _direct_answer(state: State, settings: Settings, stream: bool) -> State:
 			stream=True,
 		)
 		chunks: List[str] = []
+
+		# --- pseudo progress bar (0-90%) while waiting for first token ---
+		progress_stop = threading.Event()
+		progress_started = threading.Event()
+
+		def _progress_bar():
+			pct =0
+			while not progress_stop.is_set():
+				# slowly advance to90%
+				pct = min(90, pct +1)
+				bar_len =20
+				filled = int(bar_len * pct /100)
+				bar = "=" * filled + "." * (bar_len - filled)
+				print(f"\r[Generating] {pct:02d}% [{bar}]", end="", flush=True)
+				progress_started.set()
+				time.sleep(0.2)
+			# clear line when stopping
+			print("\r" + " " *40 + "\r", end="", flush=True)
+
+		thread = threading.Thread(target=_progress_bar, daemon=True)
+		thread.start()
+
 		# Some terminals buffer stdout and make streaming look "not streaming".
 		# We print token chunks and optionally add a tiny delay so it's visibly incremental.
 		stream_delay_ms = int(os.getenv("STREAM_DELAY_MS", "0"))
+		first_token = True
 		for chunk in resp:
 			delta = chunk.choices[0].delta
 			content = getattr(delta, "content", None)
 			if content:
+				if first_token:
+					# stop progress and start real output
+					progress_stop.set()
+					first_token = False
 				print(content, end="", flush=True)
 				chunks.append(content)
 				if stream_delay_ms >0:
 					time.sleep(stream_delay_ms /1000.0)
+
+		# ensure progress thread stops even if no tokens
+		progress_stop.set()
 		answer_text = "".join(chunks)
 	else:
 		resp = client.chat.completions.create(model=settings.model, messages=messages)
