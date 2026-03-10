@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-import json
+import hashlib
 import os
+import random
 from dataclasses import dataclass
 from typing import Optional
-
-import httpx
 
 
 @dataclass(frozen=True)
@@ -13,55 +12,71 @@ class PriceQuote:
 	query: str
 	price: Optional[float]
 	currency: str = "USD"
-	source: str = "stub"
+	source: str = "mock"
 	note: str = ""
 	url: str = ""
 
 
+def _seed_from_query(query: str) -> int:
+	# Stable across runs: use sha256
+	digest = hashlib.sha256(query.strip().lower().encode("utf-8")).digest()
+	return int.from_bytes(digest[:8], "big", signed=False)
+
+
+def _guess_category(query: str) -> str:
+	q = query.lower()
+	if any(x in q for x in ["手机", "phone", "iphone", "android"]):
+		return "phone"
+	if any(x in q for x in ["耳机", "headphone", "earbud", "airpods", "sony", "bose"]):
+		return "audio"
+	if any(x in q for x in ["电脑", "laptop", "macbook", "thinkpad", "desktop"]):
+		return "computer"
+	if any(x in q for x in ["平板", "tablet", "ipad"]):
+		return "tablet"
+	if any(x in q for x in ["土豆", "potato"]):
+		return "grocery"
+	return "general"
+
+
 def lookup_price(query: str) -> PriceQuote:
-	"""Price lookup via Serper (Google Shopping search) if configured.
+	"""Mock price lookup (no external API).
 
-	To enable:
-	- set SERPER_API_KEY in .env
+	This project is about the agent flow; price lookup is not the focus.
+	We generate deterministic demo prices so the pipeline can be tested.
 
-	This returns a best-effort quote. If no key configured, returns stub.
+	Optional: set PRICE_MODE=stub to always return None.
 	"""
-	api_key = os.getenv("SERPER_API_KEY")
-	if not api_key:
-		return PriceQuote(
-			query=query,
-			price=None,
-			source="stub",
-			note="SERPER_API_KEY not set; price lookup is disabled.",
-		)
+	mode = os.getenv("PRICE_MODE", "mock").lower()
+	if mode in {"stub", "none", "off"}:
+		return PriceQuote(query=query, price=None, source="stub", note="PRICE_MODE disables price lookup")
 
-	url = "https://google.serper.dev/shopping"
-	headers = {"X-API-KEY": api_key, "Content-Type": "application/json"}
-	payload = {"q": query, "gl": "us", "hl": "zh-cn"}
+	seed = _seed_from_query(query)
+	rng = random.Random(seed)
+	cat = _guess_category(query)
 
-	try:
-		with httpx.Client(timeout=15) as client:
-			r = client.post(url, headers=headers, content=json.dumps(payload))
-			r.raise_for_status()
-			data = r.json()
-		items = data.get("shopping") or []
-		if not items:
-			return PriceQuote(query=query, price=None, source="serper", note="No shopping results")
+	# Rough demo ranges (USD)
+	ranges = {
+		"phone": (149.0,999.0),
+		"audio": (19.0,399.0),
+		"computer": (399.0,2499.0),
+		"tablet": (199.0,1299.0),
+		"grocery": (0.79,6.99),
+		"general": (9.0,199.0),
+	}
+	lo, hi = ranges.get(cat, ranges["general"])
+	val = rng.uniform(lo, hi)
 
-		# pick first item that has a price
-		for it in items[:5]:
-			p = it.get("price")
-			link = it.get("link") or ""
-			# Serper usually returns price as string like "$199.99" or "199.99"
-			if p:
-				# extract number
-				import re
+	# price precision
+	if cat == "grocery":
+		val = round(val,2)
+	else:
+		val = round(val,0) -0.01 # looks like retail pricing
 
-				m = re.search(r"([0-9]+(?:\.[0-9]+)?)", str(p).replace(",", ""))
-				val = float(m.group(1)) if m else None
-				cur = "USD" if "$" in str(p) else "USD"
-				return PriceQuote(query=query, price=val, currency=cur, source="serper", url=link)
-
-		return PriceQuote(query=query, price=None, source="serper", note="Results found but no parseable price")
-	except Exception as e:
-		return PriceQuote(query=query, price=None, source="serper", note=f"Error: {e}")
+	return PriceQuote(
+		query=query,
+		price=float(val),
+		currency="USD",
+		source="mock",
+		note=f"Demo price (category={cat}, deterministic by query)",
+		url="",
+	)
