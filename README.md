@@ -23,5 +23,5 @@ python scripts/run_cli.py
 ```
 
 ## Notes
--目前 `price_lookup` 是占位实现（返回 None），先把流程跑通。
+-目前 `price_lookup` 支持 Serper（Google Shopping）可选集成：设置 `SERPER_API_KEY` 后会尝试返回一个 best-effort 的价格/链接；不设置则退化为 stub。
 
