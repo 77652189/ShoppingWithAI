@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+import time
 from typing import Any, Dict, List, Literal, TypedDict
 
 from langgraph.graph import END, StateGraph
@@ -133,13 +135,17 @@ def _direct_answer(state: State, settings: Settings, stream: bool) -> State:
 			stream=True,
 		)
 		chunks: List[str] = []
+		# Some terminals buffer stdout and make streaming look "not streaming".
+		# We print token chunks and optionally add a tiny delay so it's visibly incremental.
+		stream_delay_ms = int(os.getenv("STREAM_DELAY_MS", "0"))
 		for chunk in resp:
 			delta = chunk.choices[0].delta
 			content = getattr(delta, "content", None)
 			if content:
 				print(content, end="", flush=True)
 				chunks.append(content)
-			
+				if stream_delay_ms >0:
+					time.sleep(stream_delay_ms /1000.0)
 		answer_text = "".join(chunks)
 	else:
 		resp = client.chat.completions.create(model=settings.model, messages=messages)
