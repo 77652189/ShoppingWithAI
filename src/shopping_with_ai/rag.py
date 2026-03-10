@@ -42,6 +42,9 @@ def rag_search(query: str, docs_path: Path | str = "data/docs.txt", k: int =3) -
 	Uses FAISS if available; falls back to numpy dot-product.
 	"""
 	p = Path(docs_path)
+	if not p.is_absolute():
+		# Resolve relative to project root (../ from this file: src/shopping_with_ai)
+		p = Path(__file__).resolve().parents[2] / p
 	if not p.exists():
 		return []
 	docs = [line.strip() for line in p.read_text(encoding="utf-8").splitlines() if line.strip()]
@@ -62,4 +65,16 @@ def rag_search(query: str, docs_path: Path | str = "data/docs.txt", k: int =3) -
 	# fallback
 	sims = (dv @ qv[0]).tolist()
 	top = sorted(enumerate(sims), key=lambda x: x[1], reverse=True)[: min(k, len(docs))]
-	return [RagHit(doc_id=str(j), text=docs[j], score=float(s)) for j, s in top]
+	hits = [RagHit(doc_id=str(j), text=docs[j], score=float(s)) for j, s in top]
+
+	# If similarity is too weak, fall back to keyword overlap so we still surface something.
+	if hits and hits[0].score <0.15:
+		q_tokens = set(query.lower())
+		overlap = []
+		for i, d in enumerate(docs):
+			cnt = sum(1 for ch in d.lower() if ch in q_tokens)
+			overlap.append((i, cnt))
+		top2 = sorted(overlap, key=lambda x: x[1], reverse=True)[: min(k, len(docs))]
+		hits = [RagHit(doc_id=str(j), text=docs[j], score=float(c)) for j, c in top2]
+
+	return hits

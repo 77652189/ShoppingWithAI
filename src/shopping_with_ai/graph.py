@@ -170,10 +170,15 @@ def _direct_answer(state: State, settings: Settings, stream: bool) -> State:
 			inserted = True
 			break
 	if not inserted:
-		answer_text = answer_text + citations
+		answer_text = answer_text.rstrip() + citations
+
+	# IMPORTANT: when stream=True, the main answer was already printed token-by-token above.
+	# So we must print the citations block here as well, otherwise the user will not see it.
+	if stream:
+		print(citations, end="", flush=True)
 
 	state["answer"] = answer_text + rationale
-	# Also print rationale (optional) after the main body.
+	# Keep rationale printed after the main body.
 	print(rationale, end="", flush=True)
 	return state
 
