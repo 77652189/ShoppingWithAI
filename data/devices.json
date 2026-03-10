@@ -1,0 +1,110 @@
+[
+ {
+ "id": "dev-001",
+ "name": "Aurora Note15",
+ "category": "phone",
+ "price_range": "¥1799-2199",
+ "persona": ["长辈", "短视频"],
+ "features": ["6.8英寸大屏", "护眼模式", "双扬声器", "5000mAh+"],
+ "tags": ["大屏", "续航", "外放"]
+ },
+ {
+ "id": "dev-002",
+ "name": "Greenfield X60",
+ "category": "phone",
+ "price_range": "¥1399-1699",
+ "persona": ["户外", "种地"],
+ "features": ["高亮屏", "防尘防泼溅", "手套触控"],
+ "tags": ["户外", "耐用", "信号"]
+ },
+ {
+ "id": "dev-003",
+ "name": "ElderOne A9",
+ "category": "phone",
+ "price_range": "¥1199-1499",
+ "persona": ["长辈"],
+ "features": ["简易模式", "大字体", "一键求助"],
+ "tags": ["老人机", "易用"]
+ },
+ {
+ "id": "dev-004",
+ "name": "StreamPlus M12",
+ "category": "phone",
+ "price_range": "¥1599-1999",
+ "persona": ["短视频"],
+ "features": ["120Hz 高刷", "双扬声器", "大电池"],
+ "tags": ["刷视频", "流畅"]
+ },
+ {
+ "id": "dev-005",
+ "name": "FarmShield F5",
+ "category": "phone",
+ "price_range": "¥1699-2099",
+ "persona": ["户外", "种地"],
+ "features": ["抗摔结构", "高亮屏", "防尘防水"],
+ "tags": ["耐摔", "户外"]
+ },
+ {
+ "id": "dev-006",
+ "name": "Budget Max7",
+ "category": "phone",
+ "price_range": "¥899-1099",
+ "persona": ["性价比"],
+ "features": ["大电池", "大存储256GB"],
+ "tags": ["便宜", "大电池"]
+ },
+ {
+ "id": "dev-007",
+ "name": "ClearView P3",
+ "category": "phone",
+ "price_range": "¥1499-1899",
+ "persona": ["长辈", "通勤"],
+ "features": ["高亮屏", "护眼模式", "大音量"],
+ "tags": ["护眼", "外放"]
+ },
+ {
+ "id": "dev-008",
+ "name": "SignalPro S8",
+ "category": "phone",
+ "price_range": "¥1799-2299",
+ "persona": ["乡镇", "户外"],
+ "features": ["信号优化", "大电池", "抗摔"],
+ "tags": ["信号", "续航"]
+ },
+ {
+ "id": "dev-009",
+ "name": "Econo Lite5",
+ "category": "phone",
+ "price_range": "¥799-999",
+ "persona": ["入门"],
+ "features": ["简易模式", "大字体", "双卡"],
+ "tags": ["入门", "易用"]
+ },
+ {
+ "id": "dev-010",
+ "name": "Shield Pro11",
+ "category": "phone",
+ "price_range": "¥2099-2599",
+ "persona": ["户外", "耐用"],
+ "features": ["IP68", "金属中框", "高亮屏"],
+ "tags": ["耐用", "户外"]
+ },
+ {
+ "id": "dev-011",
+ "name": "Vision Max9",
+ "category": "phone",
+ "price_range": "¥1899-2399",
+ "persona": ["短视频"],
+ "features": ["大屏", "高刷", "双扬声器"],
+ "tags": ["大屏", "影音"]
+ },
+ {
+ "id": "dev-012",
+ "name": "CarePlus C2",
+ "category": "phone",
+ "price_range": "¥1299-1599",
+ "persona": ["长辈"],
+ "features": ["一键求助", "简易模式", "大音量"],
+ "tags": ["老人", "易用"]
+ }
+]

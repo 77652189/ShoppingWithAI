@@ -11,6 +11,7 @@ from .config import Settings
 from .llm import make_client
 from .price import lookup_price
 from .rag import rag_search
+from .devices import recommend_devices
 from .types import Message
 
 
@@ -125,6 +126,17 @@ def _direct_answer(state: State, settings: Settings, stream: bool) -> State:
 		context_parts.append("RAG检索结果：\n" + "\n".join([h["text"] for h in hits]))
 	if state.get("price"):
 		context_parts.append(f"价格查询结果：{state['price']}")
+
+	# add device recommendations (mock database)
+	devices = recommend_devices(state["user_input"], k=3)
+	device_block = ""
+	if devices:
+		lines = []
+		for d in devices:
+			lines.append(f"- {d.name} | {d.price_range} | 亮点: {', '.join(d.features[:3])}")
+		device_block = "\n\n[DEVICE_RECS]\n" + "\n".join(lines)
+		context_parts.append("机型推荐（模拟库）：\n" + "\n".join(lines))
+
 	context = "\n\n".join(context_parts)
 
 	# include short conversation context
@@ -207,6 +219,17 @@ def _direct_answer(state: State, settings: Settings, stream: bool) -> State:
 	# So we must print the citations block here as well, otherwise the user will not see it.
 	if stream:
 		print(citations, end="", flush=True)
+
+	# If we have device recs, surface them in the visible answer too (not only hidden context).
+	if devices:
+		rec_lines = [
+			f"- {d.name}（{d.price_range}）: {', '.join(d.features[:3])}"
+			for d in devices
+		]
+		rec_text = "\n\n【机型推荐（模拟库）】\n" + "\n".join(rec_lines)
+		answer_text = answer_text.rstrip() + rec_text
+		# Also attach as citations-like block for easy inspection
+		answer_text = answer_text + device_block
 
 	state["answer"] = answer_text + rationale
 	# Keep rationale printed after the main body.
