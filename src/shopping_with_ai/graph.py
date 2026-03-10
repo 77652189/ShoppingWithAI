@@ -160,9 +160,21 @@ def _direct_answer(state: State, settings: Settings, stream: bool) -> State:
 		resp = client.chat.completions.create(model=settings.model, messages=messages)
 		answer_text = resp.choices[0].message.content or ""
 
-	state["answer"] = answer_text + rationale + citations
-	# Always print rationale+citations so user can verify RAG usage.
-	print(rationale + citations, end="", flush=True)
+	# Insert citations before a common closing phrase so it shows up in the main body.
+	closing_markers = ["祝您购物愉快", "祝您购物愉快！", "祝您购物愉快!", "购物愉快"]
+	inserted = False
+	for marker in closing_markers:
+		idx = answer_text.rfind(marker)
+		if idx != -1:
+			answer_text = answer_text[:idx].rstrip() + citations + "\n\n" + answer_text[idx:]
+			inserted = True
+			break
+	if not inserted:
+		answer_text = answer_text + citations
+
+	state["answer"] = answer_text + rationale
+	# Also print rationale (optional) after the main body.
+	print(rationale, end="", flush=True)
 	return state
 
 
