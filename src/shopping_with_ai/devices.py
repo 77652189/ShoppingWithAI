@@ -39,11 +39,8 @@ def _load_devices() -> List[Device]:
 	return out
 
 
-def recommend_devices(query: str, k: int = 3) -> List[Device]:
-	"""Recommend devices from local mock database.
-
-	Deterministic for the same query.
-	"""
+def recommend_devices(query: str, k: int =3) -> List[Device]:
+	"""Recommend devices from local mock database (deterministic per query)."""
 	devices = _load_devices()
 	if not devices:
 		return []
@@ -51,18 +48,18 @@ def recommend_devices(query: str, k: int = 3) -> List[Device]:
 	q = query.lower()
 
 	def score(dev: Device) -> int:
-		s = 0
+		s =0
 		for t in dev.tags + dev.persona:
 			if t and t.lower() in q:
-				s += 1
+				s +=1
 		return s
 
 	scored = [(score(d), d) for d in devices]
-	candidates = [d for s, d in scored if s > 0]
+	candidates = [d for s, d in scored if s >0]
 	if not candidates:
 		candidates = devices[:]
 
-	seed = sum(ord(c) for c in q) or 1
+	seed = sum(ord(c) for c in q) or1
 	rng = random.Random(seed)
 	rng.shuffle(candidates)
 	return candidates[: min(k, len(candidates))]
