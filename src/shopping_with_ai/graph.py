@@ -80,7 +80,7 @@ def _direct_answer(state: State, settings: Settings, stream: bool) -> State:
 	client = make_client(settings)
 
 	# Compose a visible citation block so you can verify RAG is being used.
-	citations = ""
+	# Use an ASCII header too, in case the terminal encoding garbles Chinese.
 	hits = state.get("rag_hits") or []
 	if hits:
 		lines = []
@@ -91,16 +91,16 @@ def _direct_answer(state: State, settings: Settings, stream: bool) -> State:
 			lines.append(f"- doc#{h.get('doc_id')} score={h.get('score'):.3f}: {text}")
 			if len(lines) >=5:
 				break
-		citations = "\n\n【参考资料 / RAG命中】\n" + "\n".join(lines)
+		citations = "\n\n[RAG_CITATIONS]\n" + "\n".join(lines)
 	else:
-		citations = "\n\n【参考资料 / RAG命中】(无)"
+		citations = "\n\n[RAG_CITATIONS]\n(none)"
 
 	# "DeepSeek-style" visible reasoning without exposing chain-of-thought:
 	# We provide a short, user-facing rationale bullets (not hidden reasoning tokens).
-	rationale = "\n\n【我的判断依据】\n"
-	rationale += "-先确认使用场景/人群（谁用、用来干什么、在哪用）\n"
-	rationale += "- 再把需求翻译成参数（屏幕/续航/外放/信号/耐用/系统易用）\n"
-	rationale += "- 最后给出可执行的购买建议（预算分档、到手设置、避坑）\n"
+	rationale = "\n\n[RATIONALE]\n"
+	rationale += "- Confirm scenario/persona (who uses it, for what, where)\n"
+	rationale += "- Translate needs -> specs (screen/battery/speaker/signal/durability/usability)\n"
+	rationale += "- Give actionable plan (budget tiers/setup steps/pitfalls)\n"
 
 	sys = (
 		"You are an AI shopping assistant. Answer in Chinese. "
