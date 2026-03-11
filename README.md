@@ -3,12 +3,34 @@ AI导购（Shopping Assistant）项目：用户输入 → LangGraph(agent) → (
 
 ## Features (MVP)
 - 路由：根据用户问题简单判断走 RAG /价格查询 /直接回答
-- RAG：本地 `data/docs.txt` + FAISS（可用则用）
--价格查询：暂时 stub，后续接真实价格API
+- RAG：本地 `data/docs.txt` + 向量检索（自动构建索引）
+-价格查询：mock价格（可重复，用于演示）
+-机型推荐：设备库 + embedding 检索
 -直接回答：Qwen `qwen3.5-plus`（DashScope OpenAI兼容接口）
 
-## Setup
-- 在根目录准备 `.env`：
+## Environment Setup
+
+###1) Create venv
+
+```bash
+python -m venv .venv
+# Windows:
+.\.venv\Scripts\activate
+# macOS/Linux:
+source .venv/bin/activate
+```
+
+###2) Install dependencies
+
+```bash
+python -m pip install -r requirements.txt
+# (optional) editable install for module import
+python -m pip install -e .
+```
+
+###3) Configure API key
+
+Create `.env` in project root:
 
 ```env
 DASHSCOPE_API_KEY=你的key
@@ -17,17 +39,30 @@ DASHSCOPE_API_KEY=你的key
 ## Run
 
 ```bash
-# (推荐) 在项目根目录
-python -m pip install -e .
+# CLI
 python scripts/run_cli.py
 ```
 
 ## Streamlit UI
 
 ```bash
-streamlit run app_streamlit.py
+python -m streamlit run app_streamlit.py
+```
+
+## Import as module
+
+如果遇到 `ModuleNotFoundError: shopping_with_ai`，请确认已在项目根目录执行：
+
+```bash
+python -m pip install -e .
+```
+
+然后在代码里这样导入：
+
+```python
+from shopping_with_ai.app import run_once
 ```
 
 ## Notes
--目前 `price_lookup` 是 mock 实现（不依赖外部价格API）：会基于 query生成**可重复**的演示价格，用于把 agent 流程跑通。可用环境变量 `PRICE_MODE=stub`关闭。
-
+-价格查询为 mock 实现（不依赖外部价格API）：基于 query生成**可重复**的演示价格。
+- 向量索引缓存文件会自动生成（已在 .gitignore 中忽略）。
