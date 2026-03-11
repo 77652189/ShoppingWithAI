@@ -63,58 +63,17 @@ python -m pip install -e .
 from shopping_with_ai.app import run_once
 ```
 
-## Project Log (from note.md)
+## Project Timeline (from commits)
 
-### Day1
-- Created Spring Boot project with dependencies: Spring Web, Spring Data JPA, MySQL driver, Lombok
-- Installed MySQL, created database `mysql94` (password `12356`)
-- Tried MySQL Workbench, uninstalled due to UI
-- Connected DB via IntelliJ built‑in database tool
-- Created DB `myschool`, linked to project
-- Created `TestUser` entity, generated table
-- Fixed dialect configuration error by removing the line
-
-### Day2
-- Removed `TestUser`, created entities: User / Student / Instructor / Course / CourseSection / Enrollment
-- Hibernate auto‑created tables and FK relationships
-- Viewed tables in IntelliJ DB tool
-
-### Day3
-- Added User repository + service (CRUD + business separation)
-- Built GUI class with constructor injection and buttons calling services
-- Fixed empty table issue by inserting3 test users
-- Init GUI in main class with startup logs
-- MVC mapping: GUI=View, Service=Controller, Repository=Model
-
-### Day4
-- Learned ON DELETE CASCADE + JOIN
-- Added cascade annotations on Course / CourseSection / Student / Instructor
-
-### Day5
-- Added repositories + services for each entity
-- Added GUI screens for enroll/withdraw/view courses, add/delete courses
-- Added navigation GUI
-- Fixed bugs (typos/imports)
-- Added `data` class to reset test data on startup
-
-### Day6
-- Added FlatLaf for dark mode UI; fixed theme switch bug via UIManager
-- Refactored to Pet School domain:
- - Entities: Pet / Owner / PetInstructor / PetCourse / PetCourseSection / PetEnrollment
- - Rebuilt repositories, services, GUI screens
-- Fixed multiple bugs (imports/method changes/typos)
-- Cleared residual DB data, re‑seeded clean data
-
-### Day7
-- Added Achievements wall + Pet profile
-- Added login & role‑based permissions (config + service validation)
-- Default entry is login screen
-- Fixed guest permission bug in service validation
-
-### Day8
-- Translated UI to English
-- Added3 images
-- Updated `petprofile` and `data.sql` to load images
+- 初始化 CLI + 基础流程跑通（路由 / RAG /直答）
+- 加入 RAG 命中引用展示与可解释性输出
+-价格查询改为 mock（不依赖外部 API）
+- 扩展手机导购知识库（预算/人群/场景）
+- 引入 embedding + FAISS 向量检索
+- 扩充设备库并改用 embedding 检索推荐
+-记住“上一次推荐”以支持多轮对话
+- 增加 Streamlit 图形界面
+- 增加 requirements.txt / README 安装说明
 
 ## Notes
 -价格查询为 mock 实现（不依赖外部价格API）：基于 query生成**可重复**的演示价格。
