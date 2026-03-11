@@ -11,6 +11,9 @@ try:
 except Exception: # pragma: no cover
 	faiss = None
 
+from .embeddings import get_or_build_index, embed_texts
+from .config import load_settings
+
 
 @dataclass(frozen=True)
 class RagHit:
@@ -19,62 +22,43 @@ class RagHit:
 	score: float
 
 
-def _embed_stub(texts: List[str]) -> np.ndarray:
-	"""Very small stub embedder.
-
-	For real use, replace with an embedding model and store vectors.
-	"""
-	# Deterministic pseudo-embedding: bag-of-chars hashed into64 dims
-	dim =64
-	vecs = np.zeros((len(texts), dim), dtype=np.float32)
-	for i, t in enumerate(texts):
-		for ch in t:
-			idx = (ord(ch) *1315423911) % dim
-			vecs[i, idx] +=1.0
-	# normalize
-	norms = np.linalg.norm(vecs, axis=1, keepdims=True) +1e-8
-	return vecs / norms
+def _paths(docs_path: Path | str) -> tuple[Path, Path, Path]:
+	p = Path(docs_path)
+	if not p.is_absolute():
+		p = Path(__file__).resolve().parents[2] / p
+	index_path = p.parent / "docs.npy"
+	meta_path = p.parent / "docs.meta.json"
+	return p, index_path, meta_path
 
 
 def rag_search(query: str, docs_path: Path | str = "data/docs.txt", k: int =3) -> List[RagHit]:
-	"""Tiny local RAG over a newline-delimited docs file.
-
-	Uses FAISS if available; falls back to numpy dot-product.
-	"""
-	p = Path(docs_path)
-	if not p.is_absolute():
-		# Resolve relative to project root (../ from this file: src/shopping_with_ai)
-		p = Path(__file__).resolve().parents[2] / p
+	"""RAG with embeddings + FAISS (if available)."""
+	p, index_path, meta_path = _paths(docs_path)
 	if not p.exists():
 		return []
-	docs = [line.strip() for line in p.read_text(encoding="utf-8").splitlines() if line.strip()]
-	if not docs:
+
+	# load/build index
+	idx = get_or_build_index(p, index_path, meta_path)
+	texts = idx.texts
+	if not texts:
 		return []
-	qv = _embed_stub([query])
-	dv = _embed_stub(docs)
 
-	if faiss is not None:
+	settings = load_settings()
+	qv = embed_texts([query], settings)
+	dv = idx.vectors
+
+	if faiss is not None and dv.size >0:
 		index = faiss.IndexFlatIP(dv.shape[1])
-		index.add(dv)
-		scores, idxs = index.search(qv, min(k, len(docs)))
-		hits: List[RagHit] = []
-		for score, j in zip(scores[0].tolist(), idxs[0].tolist()):
-			hits.append(RagHit(doc_id=str(j), text=docs[j], score=float(score)))
-		return hits
+		# normalize vectors for cosine similarity
+		dv_norm = dv / (np.linalg.norm(dv, axis=1, keepdims=True) +1e-8)
+		qv_norm = qv / (np.linalg.norm(qv, axis=1, keepdims=True) +1e-8)
+		index.add(dv_norm)
+		scores, idxs = index.search(qv_norm, min(k, len(texts)))
+		return [RagHit(doc_id=str(j), text=texts[j], score=float(s)) for s, j in zip(scores[0], idxs[0])]
 
-	# fallback
-	sims = (dv @ qv[0]).tolist()
-	top = sorted(enumerate(sims), key=lambda x: x[1], reverse=True)[: min(k, len(docs))]
-	hits = [RagHit(doc_id=str(j), text=docs[j], score=float(s)) for j, s in top]
-
-	# If similarity is too weak, fall back to keyword overlap so we still surface something.
-	if hits and hits[0].score <0.15:
-		q_tokens = set(query.lower())
-		overlap = []
-		for i, d in enumerate(docs):
-			cnt = sum(1 for ch in d.lower() if ch in q_tokens)
-			overlap.append((i, cnt))
-		top2 = sorted(overlap, key=lambda x: x[1], reverse=True)[: min(k, len(docs))]
-		hits = [RagHit(doc_id=str(j), text=docs[j], score=float(c)) for j, c in top2]
-
-	return hits
+	# fallback: dot product
+	qv_norm = qv / (np.linalg.norm(qv, axis=1, keepdims=True) +1e-8)
+	dv_norm = dv / (np.linalg.norm(dv, axis=1, keepdims=True) +1e-8)
+	sims = (dv_norm @ qv_norm[0]).tolist()
+	top = sorted(enumerate(sims), key=lambda x: x[1], reverse=True)[: min(k, len(texts))]
+	return [RagHit(doc_id=str(j), text=texts[j], score=float(s)) for j, s in top]
