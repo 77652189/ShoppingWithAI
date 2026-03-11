@@ -22,6 +22,12 @@ python -m pip install -e .
 python scripts/run_cli.py
 ```
 
+## Streamlit UI
+
+```bash
+streamlit run app_streamlit.py
+```
+
 ## Notes
 -目前 `price_lookup` 是 mock 实现（不依赖外部价格API）：会基于 query生成**可重复**的演示价格，用于把 agent 流程跑通。可用环境变量 `PRICE_MODE=stub`关闭。
 
