@@ -78,3 +78,6 @@ from shopping_with_ai.app import run_once
 ## Notes
 -价格查询为 mock 实现（不依赖外部价格API）：基于 query生成**可重复**的演示价格。
 - 向量索引缓存文件会自动生成（已在 .gitignore 中忽略）。
+
+## Slides
+- https://gamma.app/docs/ShoppingWithAI-AI-b7wfqlpg62e83kv?mode=doc
