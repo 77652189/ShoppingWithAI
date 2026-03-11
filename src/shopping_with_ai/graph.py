@@ -18,6 +18,7 @@ from .types import Message
 class State(TypedDict, total=False):
 	user_input: str
 	history: List[Message]
+	last_recs: List[Dict[str, Any]]
 	route: Literal["rag", "price_lookup", "direct_answer"]
 	rag_hits: List[Dict[str, Any]]
 	price: Dict[str, Any]
@@ -135,8 +136,18 @@ def _direct_answer(state: State, settings: Settings, stream: bool) -> State:
 	if state.get("price"):
 		context_parts.append(f"价格查询结果：{state['price']}")
 
-	# add device recommendations (mock database)
-	devices = recommend_devices(state["user_input"], k=3)
+	# add device recommendations (reuse last_recs if user refers to previous)
+	ref_kw = ["刚才", "上次", "那个", "上一款", "之前", "上一个"]
+	use_last = any(k in state["user_input"] for k in ref_kw) and state.get("last_recs")
+	devices = []
+	if use_last:
+		# convert dicts back to pseudo Device-like objects
+		devices = [
+			type("D", (), d) for d in state.get("last_recs", [])
+		]
+	else:
+		devices = recommend_devices(state["user_input"], k=3)
+
 	device_block = ""
 	if devices:
 		lines = []
@@ -144,6 +155,11 @@ def _direct_answer(state: State, settings: Settings, stream: bool) -> State:
 			lines.append(f"- {d.name} | {d.price_range} | 亮点: {', '.join(d.features[:3])}")
 		device_block = "\n\n[DEVICE_RECS]\n" + "\n".join(lines)
 		context_parts.append("机型推荐（模拟库）：\n" + "\n".join(lines))
+		# persist for next turn
+		state["last_recs"] = [
+			{"name": d.name, "price_range": d.price_range, "features": list(d.features)}
+			for d in devices
+		]
 
 	context = "\n\n".join(context_parts)
 
@@ -240,6 +256,9 @@ def _direct_answer(state: State, settings: Settings, stream: bool) -> State:
 		answer_text = answer_text + device_block
 
 	state["answer"] = answer_text + rationale
+	# keep last_recs in output state
+	if state.get("last_recs"):
+		state["last_recs"] = state["last_recs"]
 	# Keep rationale printed after the main body.
 	print(rationale, end="", flush=True)
 	return state

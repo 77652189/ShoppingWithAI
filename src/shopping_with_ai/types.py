@@ -14,3 +14,9 @@ class Message(TypedDict):
 class FinalAnswer(TypedDict):
 	answer: str
 	tool_used: ToolName
+
+
+class DeviceRec(TypedDict):
+	name: str
+	price_range: str
+	features: list[str]

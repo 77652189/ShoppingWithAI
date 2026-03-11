@@ -19,7 +19,7 @@ def _ensure_utf8_stdio() -> None:
 		pass
 
 
-def run_once(user_input: str, history: List[Message], stream: bool = True) -> str:
+def run_once(user_input: str, history: List[Message], stream: bool = True, last_recs: List[dict] | None = None) -> str:
 	"""Run one turn.
 
 	- history is appended with the new user+assistant messages.
@@ -27,8 +27,15 @@ def run_once(user_input: str, history: List[Message], stream: bool = True) -> st
 	"""
 	settings = load_settings()
 	graph = build_graph(settings, stream=stream)
-	out = graph.invoke({"user_input": user_input, "history": history})
+	state = {"user_input": user_input, "history": history}
+	if last_recs is not None:
+		state["last_recs"] = last_recs
+	out = graph.invoke(state)
 	answer = out.get("answer", "")
+	# update last_recs for next turn
+	if last_recs is not None and out.get("last_recs"):
+		last_recs.clear()
+		last_recs.extend(out.get("last_recs"))
 
 	# update history
 	history.append({"role": "user", "content": user_input})
@@ -39,6 +46,8 @@ def run_once(user_input: str, history: List[Message], stream: bool = True) -> st
 def main() -> None:
 	_ensure_utf8_stdio()
 	history: List[Message] = []
+	last_recs: List[dict] = []
+	last_recs: List[dict] = []
 	while True:
 		try:
 			q = input("\n你想买什么？(回车提交, 输入 exit退出)\n> ").strip()
@@ -52,7 +61,7 @@ def main() -> None:
 			break
 
 		try:
-			ans = run_once(q, history=history, stream=True)
+			ans = run_once(q, history=history, stream=True, last_recs=last_recs)
 			# When stream=True, the answer is already printed; keep a newline for spacing.
 			if ans.strip():
 				print("\n")
