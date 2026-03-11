@@ -3,3 +3,6 @@
 __pycache__/
 *.pyc
 .venv/
+# embedding index cache
+/data/docs.npy
+/data/docs.meta.json
