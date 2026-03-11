@@ -6,6 +6,17 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List
 
+import numpy as np
+
+try:
+	import faiss # type: ignore
+except Exception: # pragma: no cover
+	faiss = None
+
+from .device_embeddings import get_or_build_device_index
+from .embeddings import embed_texts
+from .config import load_settings
+
 
 @dataclass(frozen=True)
 class Device:
@@ -45,30 +56,31 @@ def _load_devices() -> List[Device]:
 	return out
 
 
-def recommend_devices(query: str, k: int = 3) -> List[Device]:
-	"""Recommend devices from local mock database.
+def recommend_devices(query: str, k: int =3) -> List[Device]:
+	"""Recommend devices using embedding similarity.
 
-	Deterministic for the same query.
+	Falls back to random sample if embeddings not available.
 	"""
-	devices = _load_devices()
-	if not devices:
+	idx = get_or_build_device_index()
+	if not idx.devices or idx.vectors.size ==0:
 		return []
 
-	q = (query or "").lower()
+	settings = load_settings()
+	qv = embed_texts([query], settings)
+	dv = idx.vectors
 
-	def score(dev: Device) -> int:
-		s = 0
-		for t in dev.tags + dev.persona:
-			if t and str(t).lower() in q:
-				s += 1
-		return s
+	if faiss is not None:
+		index = faiss.IndexFlatIP(dv.shape[1])
+		# normalize for cosine
+		dv_norm = dv / (np.linalg.norm(dv, axis=1, keepdims=True) +1e-8)
+		qv_norm = qv / (np.linalg.norm(qv, axis=1, keepdims=True) +1e-8)
+		index.add(dv_norm)
+		scores, idxs = index.search(qv_norm, min(k, len(idx.devices)))
+		return [idx.devices[j] for j in idxs[0].tolist()]
 
-	scored = [(score(d), d) for d in devices]
-	candidates = [d for s, d in scored if s > 0]
-	if not candidates:
-		candidates = devices[:]
-
-	seed = sum(ord(c) for c in q) or 1
-	rng = random.Random(seed)
-	rng.shuffle(candidates)
-	return candidates[: min(k, len(candidates))]
+	# fallback: dot product
+	qv_norm = qv / (np.linalg.norm(qv, axis=1, keepdims=True) +1e-8)
+	dv_norm = dv / (np.linalg.norm(dv, axis=1, keepdims=True) +1e-8)
+	sims = (dv_norm @ qv_norm[0]).tolist()
+	top = sorted(enumerate(sims), key=lambda x: x[1], reverse=True)[: min(k, len(idx.devices))]
+	return [idx.devices[j] for j, _ in top]
