@@ -18,8 +18,14 @@ class Device:
 	tags: List[str]
 
 
+def _devices_path() -> Path:
+	# Project root = .../ShoppingWithAI
+	root = Path(__file__).resolve().parents[2]
+	return root / "data" / "devices.json"
+
+
 def _load_devices() -> List[Device]:
-	p = Path(__file__).resolve().parents[2] / "data" / "devices.json"
+	p = _devices_path()
 	if not p.exists():
 		return []
 	data = json.loads(p.read_text(encoding="utf-8"))
@@ -27,39 +33,42 @@ def _load_devices() -> List[Device]:
 	for d in data:
 		out.append(
 			Device(
-				id=d.get("id", ""),
-				name=d.get("name", ""),
-				category=d.get("category", "phone"),
-				price_range=d.get("price_range", ""),
-				persona=d.get("persona", []) or [],
-				features=d.get("features", []) or [],
-				tags=d.get("tags", []) or [],
+				id=str(d.get("id", "")),
+				name=str(d.get("name", "")),
+				category=str(d.get("category", "phone")),
+				price_range=str(d.get("price_range", "")),
+				persona=list(d.get("persona", []) or []),
+				features=list(d.get("features", []) or []),
+				tags=list(d.get("tags", []) or []),
 			)
 		)
 	return out
 
 
-def recommend_devices(query: str, k: int =3) -> List[Device]:
-	"""Recommend devices from local mock database (deterministic per query)."""
+def recommend_devices(query: str, k: int = 3) -> List[Device]:
+	"""Recommend devices from local mock database.
+
+	Deterministic for the same query.
+	"""
 	devices = _load_devices()
 	if not devices:
 		return []
 
-	q = query.lower()
+	q = (query or "").lower()
 
 	def score(dev: Device) -> int:
-		s =0
+		s = 0
 		for t in dev.tags + dev.persona:
-			if t and t.lower() in q:
-				s +=1
+			if t and str(t).lower() in q:
+				s += 1
 		return s
 
 	scored = [(score(d), d) for d in devices]
-	candidates = [d for s, d in scored if s >0]
+	candidates = [d for s, d in scored if s > 0]
 	if not candidates:
 		candidates = devices[:]
 
-	seed = sum(ord(c) for c in q) or1
+	seed = sum(ord(c) for c in q) or 1
 	rng = random.Random(seed)
 	rng.shuffle(candidates)
 	return candidates[: min(k, len(candidates))]
