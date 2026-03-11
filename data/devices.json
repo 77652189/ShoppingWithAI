@@ -6,7 +6,7 @@
  "price_range": "¥1799-2199",
  "persona": ["长辈", "短视频"],
  "features": ["6.8英寸大屏", "护眼模式", "双扬声器", "5000mAh+"],
- "tags": ["大屏", "续航", "外放"]
+ "tags": ["大屏", "续航", "外放", "老人"]
  },
  {
  "id": "dev-002",
@@ -106,5 +106,167 @@
  "persona": ["长辈"],
  "features": ["一键求助", "简易模式", "大音量"],
  "tags": ["老人", "易用"]
+ },
+ {
+ "id": "dev-013",
+ "name": "Student S1",
+ "category": "phone",
+ "price_range": "¥1099-1299",
+ "persona": ["学生"],
+ "features": ["续航强", "护眼模式", "够用性能"],
+ "tags": ["学生", "性价比"]
+ },
+ {
+ "id": "dev-014",
+ "name": "Gamer X20",
+ "category": "phone",
+ "price_range": "¥2499-2999",
+ "persona": ["游戏"],
+ "features": ["高刷", "散热", "大电池"],
+ "tags": ["游戏", "性能"]
+ },
+ {
+ "id": "dev-015",
+ "name": "Photo Pro7",
+ "category": "phone",
+ "price_range": "¥2799-3399",
+ "persona": ["拍照"],
+ "features": ["影像优化", "防抖", "夜景"],
+ "tags": ["拍照", "影像"]
+ },
+ {
+ "id": "dev-016",
+ "name": "Mini Pocket3",
+ "category": "phone",
+ "price_range": "¥1599-1899",
+ "persona": ["小屏"],
+ "features": ["轻薄", "单手操作", "护眼"],
+ "tags": ["小屏", "便携"]
+ },
+ {
+ "id": "dev-017",
+ "name": "Business B10",
+ "category": "phone",
+ "price_range": "¥2299-2799",
+ "persona": ["商务"],
+ "features": ["信号优化", "续航", "安全模式"],
+ "tags": ["商务", "稳定"]
+ },
+ {
+ "id": "dev-018",
+ "name": "Explorer X3",
+ "category": "phone",
+ "price_range": "¥1999-2499",
+ "persona": ["旅行"],
+ "features": ["高亮屏", "大电池", "防尘防水"],
+ "tags": ["旅行", "耐用"]
+ },
+ {
+ "id": "dev-019",
+ "name": "Rugged R1",
+ "category": "phone",
+ "price_range": "¥1599-2199",
+ "persona": ["户外", "耐用"],
+ "features": ["IP68", "防摔", "强光可视"],
+ "tags": ["户外", "耐用"]
+ },
+ {
+ "id": "dev-020",
+ "name": "Kids K5",
+ "category": "phone",
+ "price_range": "¥699-899",
+ "persona": ["儿童"],
+ "features": ["家长控制", "护眼", "定位"],
+ "tags": ["儿童", "安全"]
+ },
+ {
+ "id": "dev-021",
+ "name": "Value V9",
+ "category": "phone",
+ "price_range": "¥999-1299",
+ "persona": ["性价比"],
+ "features": ["大电池", "大存储", "双卡"],
+ "tags": ["性价比", "续航"]
+ },
+ {
+ "id": "dev-022",
+ "name": "Premium P50",
+ "category": "phone",
+ "price_range": "¥3999-4599",
+ "persona": ["旗舰"],
+ "features": ["影像旗舰", "高刷", "快充"],
+ "tags": ["旗舰", "高端"]
+ },
+ {
+ "id": "dev-023",
+ "name": "Ultra U80",
+ "category": "phone",
+ "price_range": "¥4999-5999",
+ "persona": ["高端"],
+ "features": ["顶级影像", "高刷", "快充"],
+ "tags": ["高端", "旗舰"]
+ },
+ {
+ "id": "dev-024",
+ "name": "Lite L6",
+ "category": "phone",
+ "price_range": "¥799-999",
+ "persona": ["入门"],
+ "features": ["简易模式", "护眼", "大音量"],
+ "tags": ["入门", "老人"]
+ },
+ {
+ "id": "dev-025",
+ "name": "Music M8",
+ "category": "phone",
+ "price_range": "¥1399-1699",
+ "persona": ["音乐"],
+ "features": ["双扬声器", "大音量", "续航"],
+ "tags": ["音乐", "外放"]
+ },
+ {
+ "id": "dev-026",
+ "name": "Record R7",
+ "category": "phone",
+ "price_range": "¥1299-1599",
+ "persona": ["视频"],
+ "features": ["高刷", "稳定", "大电池"],
+ "tags": ["视频", "影音"]
+ },
+ {
+ "id": "dev-027",
+ "name": "Eco E3",
+ "category": "phone",
+ "price_range": "¥999-1199",
+ "persona": ["通勤"],
+ "features": ["轻薄", "续航", "护眼"],
+ "tags": ["通勤", "轻薄"]
+ },
+ {
+ "id": "dev-028",
+ "name": "Runner R9",
+ "category": "phone",
+ "price_range": "¥1499-1899",
+ "persona": ["运动"],
+ "features": ["防水", "高亮屏", "续航"],
+ "tags": ["运动", "户外"]
+ },
+ {
+ "id": "dev-029",
+ "name": "City C10",
+ "category": "phone",
+ "price_range": "¥1699-2099",
+ "persona": ["城市"],
+ "features": ["高刷", "快充", "轻薄"],
+ "tags": ["城市", "通勤"]
+ },
+ {
+ "id": "dev-030",
+ "name": "LongLife L12",
+ "category": "phone",
+ "price_range": "¥1899-2299",
+ "persona": ["续航"],
+ "features": ["6000mAh", "快充", "大屏"],
+ "tags": ["续航", "大电池"]
  }
 ]
