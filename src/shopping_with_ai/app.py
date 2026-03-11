@@ -1,10 +1,22 @@
 from __future__ import annotations
 
+import sys
 from typing import List
 
 from .config import load_settings
 from .graph import build_graph
 from .types import Message
+
+
+def _ensure_utf8_stdio() -> None:
+	"""Best-effort: avoid mojibake on Windows consoles / IDE runners."""
+	try:
+		if hasattr(sys.stdout, "reconfigure"):
+			sys.stdout.reconfigure(encoding="utf-8")
+		if hasattr(sys.stderr, "reconfigure"):
+			sys.stderr.reconfigure(encoding="utf-8")
+	except Exception:
+		pass
 
 
 def run_once(user_input: str, history: List[Message], stream: bool = True) -> str:
@@ -25,6 +37,7 @@ def run_once(user_input: str, history: List[Message], stream: bool = True) -> st
 
 
 def main() -> None:
+	_ensure_utf8_stdio()
 	history: List[Message] = []
 	while True:
 		try:

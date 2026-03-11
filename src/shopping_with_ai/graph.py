@@ -228,7 +228,7 @@ def _direct_answer(state: State, settings: Settings, stream: bool) -> State:
 		]
 		rec_text = "\n\n【机型推荐（模拟库）】\n" + "\n".join(rec_lines)
 		answer_text = answer_text.rstrip() + rec_text
-		# Also attach as citations-like block for easy inspection
+		# Also attach as an ASCII block for easy inspection
 		answer_text = answer_text + device_block
 
 	state["answer"] = answer_text + rationale
