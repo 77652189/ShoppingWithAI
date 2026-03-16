@@ -121,7 +121,4 @@ python -m streamlit run app_streamlit.py
 </p>
 
 ```
-
------
-
 https://gamma.app/docs/ShoppingWithAI-AI-b7wfqlpg62e83kv?mode=doc
