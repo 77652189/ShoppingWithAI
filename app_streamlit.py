@@ -1,4 +1,13 @@
+from pathlib import Path
+import sys
+
 import streamlit as st
+
+# Ensure local src-layout package imports work with `streamlit run`.
+ROOT_DIR = Path(__file__).resolve().parent
+SRC_DIR = ROOT_DIR / "src"
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
 
 from shopping_with_ai.app import run_once
 
