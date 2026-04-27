@@ -18,6 +18,7 @@
   <img src="https://img.shields.io/badge/Framework-LangGraph-orange.svg?style=flat-square" />
   <img src="https://img.shields.io/badge/UI-Streamlit-ff4b4b.svg?style=flat-square" />
   <img src="https://img.shields.io/badge/VectorDB-FAISS-green.svg?style=flat-square" />
+  <img src="https://img.shields.io/badge/Built%20with-AI%20Ensemble-blueviolet.svg?style=flat-square" />
 </p>
 
 ---
