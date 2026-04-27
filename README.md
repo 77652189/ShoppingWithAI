@@ -116,3 +116,9 @@ python -m streamlit run app_streamlit.py
 <p align="center">
 <i>"Know what you need, love what you get — your AI navigator for the shopping age."</i>
 </p>
+
+---
+
+<p align="center">
+  Special thanks to the project's chief supervisors: 🐱 咪咪 & 喵喵
+</p>
